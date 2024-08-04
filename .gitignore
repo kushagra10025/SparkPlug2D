@@ -1,0 +1,18 @@
+########################
+# CMake Specific Files #
+########################
+
+# Output Build Directory
+out-build/
+# Output Install Directory
+out-install/
+
+#######################
+# Visual Studio Files #
+#######################
+
+.vs/
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
