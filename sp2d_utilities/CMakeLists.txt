@@ -16,7 +16,10 @@ file(GLOB_RECURSE SP2DUTILS_SOURCES
 add_library(${PROJECT_NAME} STATIC ${SP2DUTILS_SOURCES})
 add_library(sp2d::utils ALIAS ${PROJECT_NAME})
 
-# TODO Add Target Include Directories
-# TODO Add Target Link Libraries
+target_include_directories(${PROJECT_NAME}
+	PUBLIC "${CMAKE_SOURCE_DIR}/external/SDL/include"
+)
+target_link_libraries(${PROJECT_NAME}
+	PUBLIC "SDL2::SDL2-static")
 
 install(TARGETS ${PROJECT_NAME})

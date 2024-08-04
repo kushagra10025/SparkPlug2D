@@ -16,7 +16,13 @@ file(GLOB_RECURSE SP2DWINDOWING_SOURCES
 add_library(${PROJECT_NAME} STATIC ${SP2DWINDOWING_SOURCES})
 add_library(sp2d::windowing ALIAS ${PROJECT_NAME})
 
-# TODO Add Target Include Directories
-# TODO Add Target Link Libraries
+target_include_directories(${PROJECT_NAME}
+	PUBLIC "${CMAKE_SOURCE_DIR}/external/SDL/include"
+	PUBLIC "${CMAKE_SOURCE_DIR}/sp2d_utilities/"
+)
+target_link_libraries(${PROJECT_NAME}
+	PUBLIC "SDL2::SDL2-static"
+	PUBLIC "sp2d::utils"
+)
 
 install(TARGETS ${PROJECT_NAME})

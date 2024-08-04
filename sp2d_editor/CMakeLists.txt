@@ -13,9 +13,23 @@ file(GLOB_RECURSE SP2DEDITOR_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/*.inl
 )
 
+find_package(OpenGL)
+
 add_executable(${PROJECT_NAME} ${SP2DEDITOR_SOURCES})
 
-# TODO Add Target Include Directories
-# TODO Add Target Link Libraries
+target_include_directories(${PROJECT_NAME}
+	PUBLIC "${CMAKE_SOURCE_DIR}/external/glad/include"
+	PUBLIC "${CMAKE_SOURCE_DIR}/external/SDL/include"
+	PUBLIC "${CMAKE_SOURCE_DIR}/sp2d_utilities/"
+	PUBLIC "${CMAKE_SOURCE_DIR}/sp2d_windowing/"
+)
+target_link_libraries(${PROJECT_NAME}
+	PUBLIC "OpenGL::GL"
+	PUBLIC "glad::glad"
+	PUBLIC "SDL2::SDL2main"
+	PUBLIC "SDL2::SDL2-static"
+	PUBLIC "sp2d::utils"
+	PUBLIC "sp2d::windowing"
+)
 
 install(TARGETS ${PROJECT_NAME})
