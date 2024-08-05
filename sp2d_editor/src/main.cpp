@@ -8,62 +8,9 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <SP2DRendering/Essentials/ShaderLoader.h>
 #include <SP2DRendering/Essentials/TextureLoader.h>
+#include <SP2DRendering/Essentials/Vertex.h>
+#include <SP2DRendering/Core/Camera2D.h>
 #include <SP2DLogging/Log.h>
-
-class Camera2D
-{
-private:
-	int m_Width, m_Height;
-	float m_Scale;
-
-	glm::vec2 m_Position;
-	glm::mat4 m_CameraMatrix, m_OrthoProjection;
-
-	bool m_bNeedsUpdate;
-public:
-
-	Camera2D()
-		:Camera2D(640, 480)
-	{
-
-	}
-
-	Camera2D(int width, int height)
-		: m_Width{ width }, m_Height{ height }, m_Scale{ 1.f },
-		m_Position{ glm::vec2{0} }, m_CameraMatrix{ 1.f }, m_OrthoProjection{ 1.f }, m_bNeedsUpdate{ true }
-	{
-		// Init Ortho Projection
-		m_OrthoProjection = glm::ortho(
-			0.f,							// Left
-			static_cast<float>(m_Width),	// Right
-			static_cast<float>(m_Height),	// Top
-			0.f,							// Bottom
-			-1.f,							// Near
-			1.f								// Far
-		);
-	}
-
-	inline void SetScale(float scale) { m_Scale = scale; m_bNeedsUpdate = true; }
-
-	inline glm::mat4 GetCameraMatrix() { return m_CameraMatrix; }
-
-	void Update()
-	{
-		if (!m_bNeedsUpdate)
-			return;
-
-		// Translate
-		glm::vec3 translate{ -m_Position.x, -m_Position.y, 0.f };
-		m_CameraMatrix = glm::translate(m_OrthoProjection, translate);
-
-		// Scale
-		glm::vec3 scale{ m_Scale, m_Scale, 0.f };
-		m_CameraMatrix *= glm::scale(glm::mat4(1.f), scale);
-
-		m_bNeedsUpdate = false;
-	}
-
-};
 
 struct UVs
 {
@@ -174,16 +121,16 @@ int main(int argc, char** argv)
 	}
 
 	// Temp UVs
-	UVs uvs{};
+	UVs uVs{};
 	SP2D_INFO("Loaded Texture : [Width = {0} ; Height = {1}]", texture->GetWidth(), texture->GetHeight());
 
 	auto generateUVs = [&](float startX, float startY, float spriteWidth, float spriteHeight)
 		{
-			uvs.width = spriteWidth / texture->GetWidth();
-			uvs.height = spriteHeight / texture->GetHeight();
+			uVs.width = spriteWidth / texture->GetWidth();
+			uVs.height = spriteHeight / texture->GetHeight();
 
-			uvs.u = startX * uvs.width;
-			uvs.v = startY * uvs.height;
+			uVs.u = startX * uVs.width;
+			uVs.v = startY * uVs.height;
 		};
 
 	generateUVs(4, 2, 18, 18);
@@ -207,13 +154,33 @@ int main(int argc, char** argv)
 	//};
 
 	// Swapped Vertices for Upside down image (quick fix)
-	float vertices[] =
-	{
-		10.f, 28.f, 0.0f, uvs.u, (uvs.v + uvs.height),						// TL
-		10.f, 10.f, 0.0f, uvs.u, uvs.v,										// TR
-		28.f, 10.f, 0.0f, (uvs.u + uvs.width), uvs.v,						// BR
-		28.f, 28.f, 0.0f, (uvs.u + uvs.width),(uvs.v + uvs.height),			// BL
-	};
+	//float vertices[] =
+	//{
+	//	10.f, 28.f, 0.0f, uvs.u, (uvs.v + uvs.height),						// TL
+	//	10.f, 10.f, 0.0f, uvs.u, uvs.v,										// TR
+	//	28.f, 10.f, 0.0f, (uvs.u + uvs.width), uvs.v,						// BR
+	//	28.f, 28.f, 0.0f, (uvs.u + uvs.width),(uvs.v + uvs.height),			// BL
+	//};
+
+	std::vector<SP2D::Rendering::Vertex> vertices{};
+	SP2D::Rendering::Vertex vTL{}, vTR{}, vBL{}, vBR{};
+
+	vTL.position = glm::vec2{ 10.f, 28.f };
+	vTL.uvs = glm::vec2{ uVs.u, (uVs.v + uVs.height) };
+
+	vTR.position = glm::vec2{ 10.f, 10.f };
+	vTR.uvs = glm::vec2{ uVs.u, uVs.v };
+
+	vBR.position = glm::vec2{ 28.f, 28.f };
+	vBR.uvs = glm::vec2{ (uVs.u + uVs.width),(uVs.v + uVs.height) };
+
+	vBL.position = glm::vec2{ 28.f, 10.f };
+	vBL.uvs = glm::vec2{ (uVs.u + uVs.width), uVs.v };
+
+	vertices.push_back(vTL);
+	vertices.push_back(vTR);
+	vertices.push_back(vBL);
+	vertices.push_back(vBR);
 
 	GLuint indices[] =
 	{
@@ -222,7 +189,7 @@ int main(int argc, char** argv)
 	};
 
 	// Create Temp Camera
-	Camera2D camera{};
+	SP2D::Rendering::Camera2D camera{};
 	camera.SetScale(3.f);
 
 	// Create First Shader
@@ -247,10 +214,10 @@ int main(int argc, char** argv)
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
 	glBufferData(
-		GL_ARRAY_BUFFER,						// Target Buffer Type
-		sizeof(vertices) * 3 * sizeof(float),	// The size in Bytes of the Buffer Object's New Data Store
-		vertices,								// Pointer to data that will be copied into Data Store
-		GL_STATIC_DRAW							// Expected usage pattern of the data store
+		GL_ARRAY_BUFFER,									// Target Buffer Type
+		vertices.size() * sizeof(SP2D::Rendering::Vertex),	// The size in Bytes of the Buffer Object's New Data Store
+		vertices.data(),									// Pointer to data that will be copied into Data Store
+		GL_STATIC_DRAW										// Expected usage pattern of the data store
 	);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
@@ -263,12 +230,12 @@ int main(int argc, char** argv)
 	);
 
 	glVertexAttribPointer(
-		0,										// Attrib 0 - The layout position in the vertex shader
-		3,										// Size - Number of components per vertex
-		GL_FLOAT,								// Type - data type of above component
-		GL_FALSE,								// Normalized - Specifies if fixed-point data values should be normalized
-		5 * sizeof(float),						// Stride - Specifies the byte offset b/w consecutive attribs
-		(void*)0								// Pointer - Offset of the First Component
+		0,													// Attrib 0 - The layout position in the vertex shader
+		2,													// Size - Number of components per vertex
+		GL_FLOAT,											// Type - data type of above component
+		GL_FALSE,											// Normalized - Specifies if fixed-point data values should be normalized
+		sizeof(SP2D::Rendering::Vertex),					// Stride - Specifies the byte offset b/w consecutive attribs
+		(void*)offsetof(SP2D::Rendering::Vertex, position)	// Pointer - Offset of the First Component
 	);
 
 	glEnableVertexArrayAttrib(VAO, 0);
@@ -279,11 +246,23 @@ int main(int argc, char** argv)
 		2,
 		GL_FLOAT,
 		GL_FALSE,
-		5 * sizeof(float),
-		reinterpret_cast<void*>(sizeof(float) * 3)
+		sizeof(SP2D::Rendering::Vertex),
+		(void*)offsetof(SP2D::Rendering::Vertex, uvs)
 	);
 
 	glEnableVertexArrayAttrib(VAO, 1);
+
+	// For Color
+	glVertexAttribPointer(
+		2,
+		4,
+		GL_UNSIGNED_BYTE,
+		GL_TRUE,
+		sizeof(SP2D::Rendering::Vertex),
+		(void*)offsetof(SP2D::Rendering::Vertex, color)
+	);
+
+	glEnableVertexArrayAttrib(VAO, 2);
 
 	//glBindBuffer(GL_ARRAY_BUFFER, 0);
 	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
