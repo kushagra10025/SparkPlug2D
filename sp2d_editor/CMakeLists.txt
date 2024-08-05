@@ -21,6 +21,7 @@ target_include_directories(${PROJECT_NAME}
 	PUBLIC "${CMAKE_SOURCE_DIR}/external/glad/include"
 	PUBLIC "${CMAKE_SOURCE_DIR}/external/SDL/include"
 	PUBLIC "${CMAKE_SOURCE_DIR}/external/SOIL2/src"
+	PUBLIC "${CMAKE_SOURCE_DIR}/external/glm"
 	PUBLIC "${CMAKE_SOURCE_DIR}/sp2d_utilities/"
 	PUBLIC "${CMAKE_SOURCE_DIR}/sp2d_windowing/"
 )
@@ -30,6 +31,7 @@ target_link_libraries(${PROJECT_NAME}
 	PUBLIC "SDL2::SDL2main"
 	PUBLIC "SDL2::SDL2-static"
 	PUBLIC "soil2"
+	PUBLIC "glm::glm"
 	PUBLIC "sp2d::utils"
 	PUBLIC "sp2d::windowing"
 )

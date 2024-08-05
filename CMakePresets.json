@@ -20,7 +20,8 @@
             "cacheVariables": {
                 "CMAKE_C_COMPILER": "cl.exe",
                 "CMAKE_CXX_COMPILER": "cl.exe",
-                "SP2D_ENABLE_EDITOR": "ON"
+                "SP2D_ENABLE_EDITOR": "ON",
+                "GLM_ENABLE_CXX_20": "ON"
             },
             "condition": {
                 "type": "equals",
