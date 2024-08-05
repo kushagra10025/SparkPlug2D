@@ -4,7 +4,7 @@
 
 cmake_minimum_required(VERSION 3.25)
 
-project(sp2d-windowing)
+project(sp2d-windowing LANGUAGES CXX)
 
 file(GLOB_RECURSE SP2DWINDOWING_SOURCES 
 	${CMAKE_CURRENT_SOURCE_DIR}/*.cpp

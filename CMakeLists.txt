@@ -4,7 +4,7 @@
 
 cmake_minimum_required(VERSION 3.25)
 
-project(SparkPlug2D)
+project(SparkPlug2D LANGUAGES CXX C)
 
 # Set Project Properties
 
@@ -20,6 +20,7 @@ option(SP2D_ENABLE_EDITOR "Build the SparkPlug2D Editor!" ON)
 # External Libraries
 add_subdirectory("external/glad")
 add_subdirectory("external/SDL")
+add_subdirectory("external/SOIL2")
 
 # Internal Libraries
 add_subdirectory("sp2d_core")
@@ -31,7 +32,7 @@ if(${SP2D_ENABLE_EDITOR})
 endif()
 
 # Targets Variables for set_target_properties
-set(EXTERNAL_TARGETS "glad")
+set(EXTERNAL_TARGETS "glad" "soil2")
 set(EXTERNAL_TARGETS_SDL "SDL2" "SDL2main" "SDL2_test" "SDL2-static" "sdl_headers_copy" "uninstall")
 set(INTERNAL_TARGETS "sp2d-core" "sp2d-utils" "sp2d-windowing" "sp2d-editor")
 

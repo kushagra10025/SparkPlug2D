@@ -4,7 +4,7 @@
 
 cmake_minimum_required(VERSION 3.25)
 
-project(sp2d-utils)
+project(sp2d-utils LANGUAGES CXX)
 
 file(GLOB_RECURSE SP2DUTILS_SOURCES 
 	${CMAKE_CURRENT_SOURCE_DIR}/*.cpp

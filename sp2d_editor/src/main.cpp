@@ -3,6 +3,65 @@
 #include <SDL.h>
 #include <glad/glad.h>
 #include <iostream>
+#include <SOIL2/SOIL2.h>
+
+bool LoadTexture(const std::string& filepath, int& width, int& height, bool blended)
+{
+	int channels = 0;
+
+	unsigned char* image = SOIL_load_image(
+		filepath.c_str(),	// Filename
+		&width,				// Image Width
+		&height,			// Image Height
+		&channels,			// Number of Channels
+		SOIL_LOAD_AUTO		// Force Channels Count
+	);
+
+	if (!image)
+	{
+		std::cout << "SOIL Failed to Load Image [" << filepath << "] -- " << SOIL_last_result();
+		return false;
+	}
+
+	GLint format = GL_RGBA;
+
+	switch (channels)
+	{
+	case 3: format = GL_RGB; break;
+	case 4: format = GL_RGBA; break;
+	}
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	if (!blended)
+	{
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	}
+	else
+	{
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	}
+
+	glTexImage2D(
+		GL_TEXTURE_2D,			// Target
+		0,						// Level of Detail
+		format,					// Number of Color Components
+		width,					// Image Width
+		height,					// Image Height
+		0,						// Border
+		format,					// Format of Pixel Data
+		GL_UNSIGNED_BYTE,		// Data type of Pixel Data
+		image					// Data
+	);
+
+	// Delete Image Data from SOIL
+	SOIL_free_image_data(image);
+
+	return true;
+}
 
 int main(int argc, char** argv)
 {
@@ -78,6 +137,20 @@ int main(int argc, char** argv)
 		return -1;
 	}
 
+	// Temp Load a Texture
+	// Create Texture ID, Gen and Bind it
+	GLuint texID;
+	glGenTextures(1, &texID);
+	glBindTexture(GL_TEXTURE_2D, texID);
+
+	// Load texture
+	int width{ 0 }, height{ 0 };
+	if (!LoadTexture("assets/textures/default_texture.png", width, height, false))
+	{
+		std::cout << "Failed to Load the Texture!\n";
+		return -1;
+	}
+
 	// Temp Vertex Data
 	// Vertices for a Triangle
 	//float vertices[] =
@@ -88,12 +161,21 @@ int main(int argc, char** argv)
 	//};
 
 	// Vertices for a Quad
+	//float vertices[] =
+	//{
+	//	-0.5f, 0.5f, 0.0f, 0.f, 1.f,		// TL
+	//	0.5f, 0.5f, 0.0f, 1.f, 1.f,			// TR
+	//	0.5f, -0.5f, 0.0f, 1.f, 0.f,		// BR
+	//	-0.5f, -0.5f, 0.0f, 0.f, 0.f,		// BL
+	//};
+
+	// Swapped Vertices for Upside down image (quick fix)
 	float vertices[] =
 	{
-		-0.5f, 0.5f, 0.0f,		// TL
-		0.5f, 0.5f, 0.0f,		// TR
-		0.5f, -0.5f, 0.0f,		// BR
-		-0.5f, -0.5f, 0.0f,		// BL
+		-0.5f, 0.5f, 0.0f, 0.f, 0.f,		// TL
+		0.5f, 0.5f, 0.0f, 1.f, 0.f,			// TR
+		0.5f, -0.5f, 0.0f, 1.f, 1.f,		// BR
+		-0.5f, -0.5f, 0.0f, 0.f, 1.f,		// BL
 	};
 
 	GLuint indices[] =
@@ -106,9 +188,12 @@ int main(int argc, char** argv)
 	const char* vertexSource =
 		"#version 460 core\n"
 		"layout (location = 0) in vec3 aPosition;\n"
+		"layout (location = 1) in vec2 aTexCoords;\n"
+		"out vec2 fragUVs;\n"
 		"void main()\n"
 		"{\n"
 		"	gl_Position = vec4(aPosition, 1.0);\n"
+		"	fragUVs = aTexCoords;\n"
 		"}\0";
 
 	// Create the shader
@@ -135,10 +220,13 @@ int main(int argc, char** argv)
 	// Temp Fragment Source
 	const char* fragmentSource =
 		"#version 460 core\n"
+		"in vec2 fragUVs;\n"
 		"out vec4 color;\n"
+		"uniform sampler2D uTexture;\n"
 		"void main()\n"
 		"{\n"
-		"	color = vec4(1.0f, 0.0f, 1.0f, 1.0f);\n"
+		//"	color = vec4(1.0f, 0.0f, 1.0f, 1.0f);\n"
+		"	color = texture(uTexture, fragUVs);\n"
 		"}\0";
 
 	// Create the shader
@@ -225,11 +313,23 @@ int main(int argc, char** argv)
 		3,										// Size - Number of components per vertex
 		GL_FLOAT,								// Type - data type of above component
 		GL_FALSE,								// Normalized - Specifies if fixed-point data values should be normalized
-		3 * sizeof(float),						// Stride - Specifies the byte offset b/w consecutive attribs
+		5 * sizeof(float),						// Stride - Specifies the byte offset b/w consecutive attribs
 		(void*)0								// Pointer - Offset of the First Component
 	);
 
 	glEnableVertexArrayAttrib(VAO, 0);
+
+	// For UVs
+	glVertexAttribPointer(
+		1,
+		2,
+		GL_FLOAT,
+		GL_FALSE,
+		5 * sizeof(float),
+		reinterpret_cast<void*>(sizeof(float) * 3)
+	);
+
+	glEnableVertexArrayAttrib(VAO, 1);
 
 	//glBindBuffer(GL_ARRAY_BUFFER, 0);
 	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -268,6 +368,9 @@ int main(int argc, char** argv)
 		glClear(GL_COLOR_BUFFER_BIT);
 		glUseProgram(shaderProgram);
 		glBindVertexArray(VAO);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texID);
 
 		// Draw Triangle - 3 | Draw Quad - 6
 		// glDrawArrays(GL_TRIANGLES, 0, 6); // Cannot use with IBO

@@ -2,3 +2,6 @@
 	path = external/SDL
 	url = https://github.com/libsdl-org/SDL.git
 	branch = release-2.30.x
+[submodule "external/SOIL2"]
+	path = external/SOIL2
+	url = https://github.com/SpartanJ/SOIL2.git
