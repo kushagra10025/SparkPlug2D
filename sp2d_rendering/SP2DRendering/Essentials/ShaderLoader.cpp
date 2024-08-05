@@ -1,6 +1,7 @@
 #include "ShaderLoader.h"
 #include <iostream>
 #include <fstream>
+#include <SP2DLogging/Log.h>
 
 GLuint SP2D::Rendering::ShaderLoader::CreateProgram(const std::string& vertexShader, const std::string& fragmentShader)
 {
@@ -14,7 +15,7 @@ GLuint SP2D::Rendering::ShaderLoader::CreateProgram(const std::string& vertexSha
 
 	if (!LinkShaders(program, vertex, fragment))
 	{
-		std::cout << "Failed to Link Shaders!" << std::endl;
+		SP2D_CORE_ERROR("Failed to Link Shaders!");
 		return 0;
 	}
 
@@ -29,7 +30,7 @@ GLuint SP2D::Rendering::ShaderLoader::CompileShader(GLuint shaderType, const std
 
 	if (ifs.fail())
 	{
-		std::cout << "Shader Failed to open [" << filePath << "]" << std::endl;
+		SP2D_CORE_ERROR("Shader Failed to open [{0}]", filePath);
 		return 0;
 	}
 
@@ -50,7 +51,7 @@ GLuint SP2D::Rendering::ShaderLoader::CompileShader(GLuint shaderType, const std
 
 	if (!CompileSuccess(shaderID))
 	{
-		std::cout << "Failed to compile shader [" << filePath << "]" << std::endl;
+		SP2D_CORE_ERROR("Failed to compile shader [{0}]!", filePath);
 		return 0;
 	}
 
@@ -72,7 +73,7 @@ bool SP2D::Rendering::ShaderLoader::CompileSuccess(GLuint shader)
 		std::string errorLog(maxLength, ' ');
 
 		glGetShaderInfoLog(shader, maxLength, &maxLength, errorLog.data());
-		std::cout << "Shader Compilation Failed : " << std::string{ errorLog } << std::endl;
+		SP2D_CORE_ERROR("Shader Compilation Failed\n{0}", std::string{ errorLog });
 
 		glDeleteShader(shader);
 		return false;
@@ -94,7 +95,7 @@ bool SP2D::Rendering::ShaderLoader::IsProgramValid(GLuint program)
 		std::string errorLog(maxLength, ' ');
 
 		glGetProgramInfoLog(program, maxLength, &maxLength, errorLog.data());
-		std::cout << "Program is not Valid: " << std::string{ errorLog } << std::endl;
+		SP2D_CORE_ERROR("Program is not Valid\n{0}", std::string{ errorLog });
 
 		//glDeleteProgram(program);
 		return false;

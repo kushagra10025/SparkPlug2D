@@ -18,8 +18,11 @@ add_library(sp2d::utils ALIAS ${PROJECT_NAME})
 
 target_include_directories(${PROJECT_NAME}
 	PUBLIC "${CMAKE_SOURCE_DIR}/external/SDL/include"
+	PUBLIC "${CMAKE_SOURCE_DIR}/sp2d_logging/"
 )
 target_link_libraries(${PROJECT_NAME}
-	PUBLIC "SDL2::SDL2-static")
+	PUBLIC "SDL2::SDL2-static"
+	PUBLIC "sp2d::logging"
+)
 
 install(TARGETS ${PROJECT_NAME})

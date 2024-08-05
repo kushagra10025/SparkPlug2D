@@ -1,5 +1,6 @@
 #include "Window.h"
 #include <iostream>
+#include <SP2DLogging/Log.h>
 
 SP2D::Windowing::Window::Window(const std::string title, int width, int height, int xPos, int yPos, bool v_sync /*= true*/, Uint32 flags /*= (SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_MOUSE_CAPTURE)*/)
 	: m_pWindow{ nullptr }, m_GLContext{}, m_sTitle{title},
@@ -11,7 +12,7 @@ SP2D::Windowing::Window::Window(const std::string title, int width, int height, 
 	if (v_sync)
 	{
 		if (!SDL_SetHint(SDL_HINT_RENDER_VSYNC, "1"))
-			std::cout << "Failed to Enabled VSYNC!\n";
+			SP2D_CORE_ERROR("Failed to Enabled VSYNC!");
 	}
 }
 
@@ -32,7 +33,7 @@ void SP2D::Windowing::Window::CreateNewWindow(Uint32 flags)
 	if (!m_pWindow)
 	{
 		std::string error = SDL_GetError();
-		std::cout << "Failed to Create the Window : " << error << "\n";
+		SP2D_CORE_ERROR("Failed to Create the Window\n{0}",error);
 	}
 }
 

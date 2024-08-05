@@ -22,6 +22,7 @@ target_include_directories(${PROJECT_NAME}
 	PUBLIC "${CMAKE_SOURCE_DIR}/external/glad/include"
 	PUBLIC "${CMAKE_SOURCE_DIR}/external/SOIL2/src"
 	PUBLIC "${CMAKE_SOURCE_DIR}/external/glm"
+	PUBLIC "${CMAKE_SOURCE_DIR}/sp2d_logging/"
 )
 
 target_link_libraries(${PROJECT_NAME}
@@ -29,6 +30,7 @@ target_link_libraries(${PROJECT_NAME}
 	PUBLIC "glad::glad"
 	PUBLIC "soil2"
 	PUBLIC "glm::glm"
+	PUBLIC "sp2d::logging"
 )
 
 install(TARGETS ${PROJECT_NAME})

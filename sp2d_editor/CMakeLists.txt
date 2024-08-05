@@ -25,6 +25,7 @@ target_include_directories(${PROJECT_NAME}
 	PUBLIC "${CMAKE_SOURCE_DIR}/sp2d_utilities/"
 	PUBLIC "${CMAKE_SOURCE_DIR}/sp2d_windowing/"
 	PUBLIC "${CMAKE_SOURCE_DIR}/sp2d_rendering/"
+	PUBLIC "${CMAKE_SOURCE_DIR}/sp2d_logging/"
 )
 target_link_libraries(${PROJECT_NAME}
 	PUBLIC "OpenGL::GL"
@@ -36,6 +37,7 @@ target_link_libraries(${PROJECT_NAME}
 	PUBLIC "sp2d::utils"
 	PUBLIC "sp2d::windowing"
 	PUBLIC "sp2d::rendering"
+	PUBLIC "sp2d::logging"
 )
 
 # Installations

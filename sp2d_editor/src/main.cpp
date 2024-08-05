@@ -1,12 +1,13 @@
 #define SDL_MAIN_HANDLED 1;
-#include <Windowing/Window/Window.h>
+#include <SP2DWindowing/Window/Window.h>
 #include <SDL.h>
 #include <glad/glad.h>
 #include <iostream>
 #include <SOIL2/SOIL2.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <Rendering/Essentials/ShaderLoader.h>
+#include <SP2DRendering/Essentials/ShaderLoader.h>
+#include <SP2DLogging/Log.h>
 
 class Camera2D
 {
@@ -134,6 +135,19 @@ bool LoadTexture(const std::string& filepath, int& width, int& height, bool blen
 int main(int argc, char** argv)
 {
 	bool running = true;
+
+	SP2D::Logging::Log::Init();
+	if (SP2D_LOG_INITIALIZED())
+	{
+		SP2D_CORE_INFO("Logging has Initialized!");
+		SP2D_INFO("Logging has Initialized!");
+	}
+	else
+	{
+		std::cout << "Logging initialization failed!" << std::endl;
+		return -1;
+	}
+
 
 	// Init SDL
 	SDL_SetMainReady();
@@ -391,7 +405,7 @@ int main(int argc, char** argv)
 	}
 
 	SDL_Quit();
-	std::cout << "Closing!" << std::endl;
+	SP2D_CORE_INFO("Closing!");
 
 	return 0;
 }

@@ -1,5 +1,6 @@
 #include "Shader.h"
 #include <iostream>
+#include <SP2DLogging/Log.h>
 
 GLuint SP2D::Rendering::Shader::GetUniformLocation(const std::string& uniformName)
 {
@@ -11,7 +12,7 @@ GLuint SP2D::Rendering::Shader::GetUniformLocation(const std::string& uniformNam
 
 	if (location == GL_INVALID_INDEX)
 	{
-		std::cout << "Uniform [" << uniformName << "] not found in Shader!" << std::endl;
+		SP2D_CORE_ERROR("Uniform [{0}] not found in Shader!", uniformName);
 		return -1;
 	}
 
