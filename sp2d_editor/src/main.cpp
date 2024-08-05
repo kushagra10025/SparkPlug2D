@@ -6,21 +6,16 @@
 #include <SOIL2/SOIL2.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <entt/entt.hpp>
+
 #include <SP2DRendering/Essentials/ShaderLoader.h>
 #include <SP2DRendering/Essentials/TextureLoader.h>
 #include <SP2DRendering/Essentials/Vertex.h>
 #include <SP2DRendering/Core/Camera2D.h>
 #include <SP2DLogging/Log.h>
-
-struct UVs
-{
-	float u, v, width, height;
-	UVs()
-		: u{ 0.f }, v{ 0.f }, width{ 0.f }, height{ 0.f }
-	{
-
-	}
-};
+#include <SP2DCore/ECS/Entity.h>
+#include <SP2DCore/ECS/Components/SpriteComponent.h>
+#include <SP2DCore/ECS/Components/TransformComponent.h>
 
 int main(int argc, char** argv)
 {
@@ -112,75 +107,64 @@ int main(int argc, char** argv)
 	// Enable Alpha Blending
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	
+
 	// Temp Texture
 	auto texture = SP2D::Rendering::TextureLoader::Create(SP2D::Rendering::Texture::TextureType::PIXEL, "assets/textures/pixel_platformer/Tilemap/tilemap_packed.png");
 	if (!texture)
 	{
 		SP2D_ERROR("Failed to Create Texture!");
 	}
-
-	// Temp UVs
-	UVs uVs{};
 	SP2D_INFO("Loaded Texture : [Width = {0} ; Height = {1}]", texture->GetWidth(), texture->GetHeight());
 
-	auto generateUVs = [&](float startX, float startY, float spriteWidth, float spriteHeight)
-		{
-			uVs.width = spriteWidth / texture->GetWidth();
-			uVs.height = spriteHeight / texture->GetHeight();
+	// Temp Entity Stuff
+	auto pRegistry = std::make_unique<SP2D::Core::ECS::Registry>();
+	if (!pRegistry)
+	{
+		SP2D_ERROR("Failed to Create an ECS Registry!");
+		return -1;
+	}
 
-			uVs.u = startX * uVs.width;
-			uVs.v = startY * uVs.height;
-		};
+	SP2D::Core::ECS::Entity entity1{ *pRegistry, "Entity1", "TestGroup" };
 
-	generateUVs(4, 2, 18, 18);
+	auto& transform = entity1.AddComponent<SP2D::Core::ECS::TransformComponent>(
+		SP2D::Core::ECS::TransformComponent{
+			.position = glm::vec2{10.f, 10.f},
+			.scale = glm::vec2{1.f, 1.f},
+			.rotation = 0.f
+		}
+	);
 
-	// Temp Vertex Data
-	// Vertices for a Triangle
-	//float vertices[] =
-	//{
-	//	0.0f, 0.5f, 0.0f,
-	//	-0.5f, -0.5f, 0.0f,
-	//	0.5f, -0.5f, 0.0f
-	//};
+	auto& sprite = entity1.AddComponent<SP2D::Core::ECS::SpriteComponent>(
+		SP2D::Core::ECS::SpriteComponent{
+			.width = 18.f,
+			.height = 18.f,
+			.color = SP2D::Rendering::Color{.r = 0, .g = 255, .b = 0, .a = 255},
+			.start_x = 4,
+			.start_y = 2
+		}
+	);
 
-	// Vertices for a Quad
-	//float vertices[] =
-	//{
-	//	-0.5f, 0.5f, 0.0f, 0.f, 1.f,		// TL
-	//	0.5f, 0.5f, 0.0f, 1.f, 1.f,			// TR
-	//	0.5f, -0.5f, 0.0f, 1.f, 0.f,		// BR
-	//	-0.5f, -0.5f, 0.0f, 0.f, 0.f,		// BL
-	//};
-
-	// Swapped Vertices for Upside down image (quick fix)
-	//float vertices[] =
-	//{
-	//	10.f, 28.f, 0.0f, uvs.u, (uvs.v + uvs.height),						// TL
-	//	10.f, 10.f, 0.0f, uvs.u, uvs.v,										// TR
-	//	28.f, 10.f, 0.0f, (uvs.u + uvs.width), uvs.v,						// BR
-	//	28.f, 28.f, 0.0f, (uvs.u + uvs.width),(uvs.v + uvs.height),			// BL
-	//};
+	sprite.generate_uvs(texture->GetWidth(), texture->GetHeight());
 
 	std::vector<SP2D::Rendering::Vertex> vertices{};
 	SP2D::Rendering::Vertex vTL{}, vTR{}, vBL{}, vBR{};
 
-	vTL.position = glm::vec2{ 10.f, 28.f };
-	vTL.uvs = glm::vec2{ uVs.u, (uVs.v + uVs.height) };
+	vTL.position = glm::vec2{ transform.position.x, transform.position.y + sprite.height };
+	vTL.uvs = glm::vec2{ sprite.uvs.u, sprite.uvs.v + sprite.uvs.uv_height };
 
-	vTR.position = glm::vec2{ 10.f, 10.f };
-	vTR.uvs = glm::vec2{ uVs.u, uVs.v };
+	vTR.position = glm::vec2{ transform.position.x + sprite.width, transform.position.y + sprite.height };
+	vTR.uvs = glm::vec2{ sprite.uvs.u + sprite.uvs.uv_width, sprite.uvs.v + sprite.uvs.uv_height };
 
-	vBR.position = glm::vec2{ 28.f, 28.f };
-	vBR.uvs = glm::vec2{ (uVs.u + uVs.width),(uVs.v + uVs.height) };
+	vBL.position = glm::vec2{ transform.position.x, transform.position.y };
+	vBL.uvs = glm::vec2{ sprite.uvs.u, sprite.uvs.v };
 
-	vBL.position = glm::vec2{ 28.f, 10.f };
-	vBL.uvs = glm::vec2{ (uVs.u + uVs.width), uVs.v };
+	vBR.position = glm::vec2{ transform.position.x + sprite.width, transform.position.y };
+	vBR.uvs = glm::vec2{ sprite.uvs.u + sprite.uvs.uv_width, sprite.uvs.v };
 
 	vertices.push_back(vTL);
-	vertices.push_back(vTR);
 	vertices.push_back(vBL);
 	vertices.push_back(vBR);
+	vertices.push_back(vTR);
 
 	GLuint indices[] =
 	{

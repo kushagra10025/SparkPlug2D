@@ -16,7 +16,18 @@ file(GLOB_RECURSE SP2DCORE_SOURCES
 add_library(${PROJECT_NAME} STATIC ${SP2DCORE_SOURCES})
 add_library(sp2d::core ALIAS ${PROJECT_NAME})
 
-# TODO Add Target Include Directories
-# TODO Add Target Link Libraries
+target_include_directories(${PROJECT_NAME}
+	PUBLIC "${CMAKE_SOURCE_DIR}/external/glm"
+	PUBLIC "${CMAKE_SOURCE_DIR}/external/entt/src"
+	PUBLIC "${CMAKE_SOURCE_DIR}/sp2d_rendering/"
+	PUBLIC "${CMAKE_SOURCE_DIR}/sp2d_logging/"
+)
+
+target_link_libraries(${PROJECT_NAME}
+	PUBLIC "glm::glm"
+	PUBLIC "EnTT::EnTT"
+	PUBLIC "sp2d::rendering"
+	PUBLIC "sp2d::logging"
+)
 
 install(TARGETS ${PROJECT_NAME})
