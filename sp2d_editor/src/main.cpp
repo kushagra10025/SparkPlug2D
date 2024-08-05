@@ -26,6 +26,10 @@ int main(int argc, char** argv)
 	{
 		SP2D_CORE_INFO("Logging has Initialized!");
 		SP2D_INFO("Logging has Initialized!");
+
+		SP2D_WARN("Logging has Initialized!");
+		SP2D_ERROR("Logging has Initialized!");
+		SP2D_FATAL("Logging has Initialized!");
 	}
 	else
 	{

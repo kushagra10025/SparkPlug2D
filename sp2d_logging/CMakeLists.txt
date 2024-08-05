@@ -24,4 +24,8 @@ target_link_libraries(${PROJECT_NAME}
 	PUBLIC "spdlog::spdlog"
 )
 
+target_compile_definitions(${PROJECT_NAME}
+	PUBLIC "SP2D_SOURCE_DETAILS_LOG=1"
+)
+
 install(TARGETS ${PROJECT_NAME})
