@@ -16,6 +16,7 @@
 #include <SP2DCore/ECS/Entity.h>
 #include <SP2DCore/ECS/Components/SpriteComponent.h>
 #include <SP2DCore/ECS/Components/TransformComponent.h>
+#include <SP2DCore/ECS/Components/IdentificationComponent.h>
 
 int main(int argc, char** argv)
 {
@@ -169,6 +170,10 @@ int main(int argc, char** argv)
 	vertices.push_back(vBL);
 	vertices.push_back(vBR);
 	vertices.push_back(vTR);
+
+	// Test Component
+	auto& id = entity1.GetComponent<SP2D::Core::ECS::IdentificationComponent>();
+	SP2D_INFO("Name : {0}, Group : {1}, ID : {2}", id.name, id.group, id.entity_id);
 
 	GLuint indices[] =
 	{
