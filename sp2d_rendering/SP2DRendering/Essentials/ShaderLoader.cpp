@@ -90,7 +90,7 @@ bool SP2D::Rendering::ShaderLoader::IsProgramValid(GLuint program)
 	if (status != GL_TRUE)
 	{
 		GLint maxLength;
-		glGetProgramiv(program, GL_LINK_STATUS, &status);
+		glGetProgramiv(program, GL_LINK_STATUS, &maxLength);
 
 		std::string errorLog(maxLength, ' ');
 

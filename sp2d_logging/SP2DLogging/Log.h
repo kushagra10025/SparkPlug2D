@@ -14,6 +14,7 @@ namespace SP2D::Logging
 		static bool m_bInitialized;
 
 	public:
+		Log() = delete;
 		static void Init();
 
 		inline static std::shared_ptr<spdlog::logger>& GetCoreLogger() { return s_CoreLogger; }

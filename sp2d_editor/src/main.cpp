@@ -7,6 +7,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <SP2DRendering/Essentials/ShaderLoader.h>
+#include <SP2DRendering/Essentials/TextureLoader.h>
 #include <SP2DLogging/Log.h>
 
 class Camera2D
@@ -73,64 +74,6 @@ struct UVs
 
 	}
 };
-
-bool LoadTexture(const std::string& filepath, int& width, int& height, bool blended)
-{
-	int channels = 0;
-
-	unsigned char* image = SOIL_load_image(
-		filepath.c_str(),	// Filename
-		&width,				// Image Width
-		&height,			// Image Height
-		&channels,			// Number of Channels
-		SOIL_LOAD_AUTO		// Force Channels Count
-	);
-
-	if (!image)
-	{
-		std::cout << "SOIL Failed to Load Image [" << filepath << "] -- " << SOIL_last_result();
-		return false;
-	}
-
-	GLint format = GL_RGBA;
-
-	switch (channels)
-	{
-	case 3: format = GL_RGB; break;
-	case 4: format = GL_RGBA; break;
-	}
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-	if (!blended)
-	{
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	}
-	else
-	{
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	}
-
-	glTexImage2D(
-		GL_TEXTURE_2D,			// Target
-		0,						// Level of Detail
-		format,					// Number of Color Components
-		width,					// Image Width
-		height,					// Image Height
-		0,						// Border
-		format,					// Format of Pixel Data
-		GL_UNSIGNED_BYTE,		// Data type of Pixel Data
-		image					// Data
-	);
-
-	// Delete Image Data from SOIL
-	SOIL_free_image_data(image);
-
-	return true;
-}
 
 int main(int argc, char** argv)
 {
@@ -222,29 +165,22 @@ int main(int argc, char** argv)
 	// Enable Alpha Blending
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	// Temp Load a Texture
-	// Create Texture ID, Gen and Bind it
-	GLuint texID;
-	glGenTextures(1, &texID);
-	glBindTexture(GL_TEXTURE_2D, texID);
-
-	// Load texture
-	int width{ 0 }, height{ 0 };
-	//if (!LoadTexture("assets/textures/default_texture.png", width, height, false))
-	if (!LoadTexture("assets/textures/pixel_platformer/Tilemap/tilemap_packed.png", width, height, false))
+	
+	// Temp Texture
+	auto texture = SP2D::Rendering::TextureLoader::Create(SP2D::Rendering::Texture::TextureType::PIXEL, "assets/textures/pixel_platformer/Tilemap/tilemap_packed.png");
+	if (!texture)
 	{
-		std::cout << "Failed to Load the Texture!\n";
-		return -1;
+		SP2D_ERROR("Failed to Create Texture!");
 	}
 
 	// Temp UVs
 	UVs uvs{};
+	SP2D_INFO("Loaded Texture : [Width = {0} ; Height = {1}]", texture->GetWidth(), texture->GetHeight());
 
 	auto generateUVs = [&](float startX, float startY, float spriteWidth, float spriteHeight)
 		{
-			uvs.width = spriteWidth / width;
-			uvs.height = spriteHeight / height;
+			uvs.width = spriteWidth / texture->GetWidth();
+			uvs.height = spriteHeight / texture->GetHeight();
 
 			uvs.u = startX * uvs.width;
 			uvs.v = startY * uvs.height;
@@ -392,7 +328,7 @@ int main(int argc, char** argv)
 		shader->SetUniformMat4("uProjection", projection);
 
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texID);
+		glBindTexture(GL_TEXTURE_2D, texture->GetID());
 
 		// Draw Triangle - 3 | Draw Quad - 6
 		// glDrawArrays(GL_TRIANGLES, 0, 6); // Cannot use with IBO
