@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Registry.h"
+#include <sol/sol.hpp>
 
 namespace SP2D::Core::ECS
 {
@@ -25,6 +26,11 @@ namespace SP2D::Core::ECS
 		inline const std::string& GetName() const { return m_sName; }
 		inline const std::string& GetGroup() const { return m_sGroup; }
 
+		static void CreateLuaEntityBind(sol::state& lua, Registry& registry);
+
+		template <typename TComponent>
+		static void RegisterMetaComponent();
+
 		template <typename TComponent, typename ...Args>
 		TComponent& AddComponent(Args&& ...args);
 
@@ -40,6 +46,9 @@ namespace SP2D::Core::ECS
 		template <typename TComponent>
 		void RemoveComponent();
 	};
+
+	template <typename TComponent>
+	auto add_component(Entity& entity, const sol::table& comp, sol::this_state s);
 }
 
 #include "Entity.inl"

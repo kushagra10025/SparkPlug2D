@@ -1,5 +1,7 @@
 #include "ScriptingSystem.h"
 #include "../ECS/Components/ScriptComponent.h"
+#include "../ECS/Components/TransformComponent.h"
+#include "../ECS/Components/SpriteComponent.h"
 #include "../ECS/Entity.h"
 #include <SP2DLogging/Log.h>
 
@@ -104,5 +106,15 @@ void SP2D::Core::Systems::ScriptingSystem::Render()
 			SP2D_CORE_ERROR("Error running main-render\n{0}", err.what());
 		}
 	}
+}
+
+void SP2D::Core::Systems::ScriptingSystem::RegisterLuaBindings(sol::state& lua, SP2D::Core::ECS::Registry& registry)
+{
+	SP2D::Core::ECS::Entity::CreateLuaEntityBind(lua, registry);
+	SP2D::Core::ECS::TransformComponent::CreateLuaTransformBind(lua);
+	SP2D::Core::ECS::SpriteComponent::CreateLuaSpriteBind(lua, registry);
+
+	SP2D::Core::ECS::Entity::RegisterMetaComponent<SP2D::Core::ECS::TransformComponent>();
+	SP2D::Core::ECS::Entity::RegisterMetaComponent<SP2D::Core::ECS::SpriteComponent>();
 }
 

@@ -41,4 +41,25 @@ namespace SP2D::Core::ECS
 		auto& registry = m_Registry.GetRegistry();
 		registry.remove<TComponent>(m_Entity);	
 	}
+
+	//////////
+
+	template <typename TComponent>
+	auto SP2D::Core::ECS::add_component(Entity& entity, const sol::table& comp, sol::this_state s)
+	{
+		auto& component = entity.AddComponent<TComponent>(
+			comp.valid() ? comp.as<TComponent>() : TComponent{}
+		);
+
+		return sol::make_reference(s, std::ref(component));
+	}
+
+	template <typename TComponent>
+	inline void Entity::RegisterMetaComponent()
+	{
+		using namespace entt::literals;
+		entt::meta<TComponent>()
+			.type(entt::type_hash<TComponent>::value())
+			.template func<&add_component<TComponent>> ("add_component"_hs);
+	}
 }

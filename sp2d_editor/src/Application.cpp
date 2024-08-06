@@ -38,10 +38,10 @@ bool SP2D::Editor::Application::Initialize()
 	// Init SDL
 	SDL_SetMainReady();
 
-	//if (SDL_Init(SDL_INIT_EVERYTHING) != 0) // This can be used instead of individually adding the INIT Flags.
+	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) // This can be used instead of individually adding the INIT Flags.
 		// Removed the SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER flags as they were adding Delay in INIT
 		// The Delay is sometimes sorted out by restarting the computer.
-	if (SDL_Init(SDL_INIT_TIMER | SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_HAPTIC) != 0)
+	// if (SDL_Init(SDL_INIT_TIMER | SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_HAPTIC) != 0)
 	{
 		std::string error = SDL_GetError();
 		SP2D_FATAL("SDL Init Failed!\n{0}", error);
@@ -125,46 +125,13 @@ bool SP2D::Editor::Application::Initialize()
 		return false;
 	}
 
-	// Temp Texture
-	auto texture = assetManager->GetTexture("sample_packed_tilemap");
-
-	SP2D_INFO("Loaded Texture : [Width = {0} ; Height = {1}]", texture.GetWidth(), texture.GetHeight());
-
-	// Temp Entity Stuff
+	// Create ECS Registry
 	m_pRegistry = std::make_unique<SP2D::Core::ECS::Registry>();
 	if (!m_pRegistry)
 	{
 		SP2D_ERROR("Failed to Create an ECS Registry!");
 		return false;
 	}
-
-	SP2D::Core::ECS::Entity entity1{ *m_pRegistry, "Entity1", "TestGroup" };
-
-	auto& transform = entity1.AddComponent<SP2D::Core::ECS::TransformComponent>(
-		SP2D::Core::ECS::TransformComponent{
-			.position = glm::vec2{10.f, 10.f},
-			.scale = glm::vec2{5.f, 5.f},
-			.rotation = 0.f
-		}
-	);
-
-	auto& sprite = entity1.AddComponent<SP2D::Core::ECS::SpriteComponent>(
-		SP2D::Core::ECS::SpriteComponent{
-			.width = 18.f,
-			.height = 18.f,
-			.color = SP2D::Rendering::Color{.r = 255, .g = 255, .b = 255, .a = 255},
-			.start_x = 4,
-			.start_y = 2,
-			.layer = 0,
-			.texture_name="sample_packed_tilemap"
-		}
-	);
-
-	sprite.generate_uvs(texture.GetWidth(), texture.GetHeight());
-
-	// Test Component
-	auto& id = entity1.GetComponent<SP2D::Core::ECS::IdentificationComponent>();
-	SP2D_INFO("Name : {0}, Group : {1}, ID : {2}", id.name, id.group, id.entity_id);
 
 	// Create the Lua State
 	auto lua = std::make_shared<sol::state>();
@@ -194,12 +161,6 @@ bool SP2D::Editor::Application::Initialize()
 	if (!scriptSystem)
 	{
 		SP2D_ERROR("Failed to create Scripting System!");
-		return false;
-	}
-
-	if (!scriptSystem->LoadMainScript(*lua))
-	{
-		SP2D_ERROR("Failed to load main-lua script!");
 		return false;
 	}
 
@@ -241,6 +202,15 @@ bool SP2D::Editor::Application::Initialize()
 	if (!LoadShaders())
 	{
 		SP2D_ERROR("Failed to load the Shaders!");
+		return false;
+	}
+
+	// Doing this post creation of AssetManager to prevent assert
+	SP2D::Core::Systems::ScriptingSystem::RegisterLuaBindings(*lua, *m_pRegistry);
+
+	if (!scriptSystem->LoadMainScript(*lua))
+	{
+		SP2D_ERROR("Failed to load main-lua script!");
 		return false;
 	}
 
@@ -308,40 +278,6 @@ void SP2D::Editor::Application::Update()
 	}
 
 	scriptSystem->Update();
-
-	// Quick System Creation for Entity Update test
-	auto view = m_pRegistry->GetRegistry().view<SP2D::Core::ECS::TransformComponent, SP2D::Core::ECS::SpriteComponent>();
-
-	static float rotation{ 0.f };
-	static float x_pos{ 10.f };
-	static bool bMoveRight{ true };
-
-	if (rotation >= 360.f)
-	{
-		rotation = 0.f;
-	}
-
-	if (bMoveRight && x_pos < 300.f)
-		x_pos += 3;
-	else if (bMoveRight && x_pos >= 300.f)
-		bMoveRight = false;
-
-	if (!bMoveRight && x_pos > 10.f)
-		x_pos -= 3;
-	else if (!bMoveRight && x_pos <= 10.f)
-		bMoveRight = true;
-
-	for (const auto& entity : view)
-	{
-		SP2D::Core::ECS::Entity ent{ *m_pRegistry, entity };
-		auto& transform = ent.GetComponent<SP2D::Core::ECS::TransformComponent>();
-
-		transform.rotation = rotation;
-		transform.position.x = x_pos;
-	}
-
-	rotation += bMoveRight ? 9 : -9;
-
 }
 
 void SP2D::Editor::Application::Render()

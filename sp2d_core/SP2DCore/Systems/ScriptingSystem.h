@@ -18,5 +18,7 @@ namespace SP2D::Core::Systems
 		bool LoadMainScript(sol::state& lua);
 		void Update();
 		void Render();
+
+		static void RegisterLuaBindings(sol::state& lua, SP2D::Core::ECS::Registry& registry);
 	};
 }
