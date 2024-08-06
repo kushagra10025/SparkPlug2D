@@ -15,9 +15,6 @@ namespace SP2D::Editor
 		SDL_Event m_Event;
 		bool m_bIsRunning;
 
-		// VAO and VBO creation
-		GLuint VAO, VBO, IBO;
-
 	private:
 		bool Initialize();
 		bool LoadShaders();
@@ -29,10 +26,12 @@ namespace SP2D::Editor
 		void Cleanup();
 
 		Application();
+		~Application() = default;
+		Application(const Application&) = delete;
+		Application& operator=(const Application&) = delete;
 
 	public:
 		static Application& GetInstance();
-		~Application();
 
 		void Run();
 	};

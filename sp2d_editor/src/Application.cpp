@@ -17,6 +17,7 @@
 #include <SP2DCore/ECS/Components/TransformComponent.h>
 #include <SP2DCore/ECS/Components/IdentificationComponent.h>
 #include <SP2DCore/Systems/ScriptingSystem.h>
+#include <SP2DCore/Systems/RenderSystem.h>
 #include <SP2DCore/Resources/AssetManager.h>
 
 bool SP2D::Editor::Application::Initialize()
@@ -37,10 +38,10 @@ bool SP2D::Editor::Application::Initialize()
 	// Init SDL
 	SDL_SetMainReady();
 
-	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) // This can be used instead of individually adding the INIT Flags.
+	//if (SDL_Init(SDL_INIT_EVERYTHING) != 0) // This can be used instead of individually adding the INIT Flags.
 		// Removed the SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER flags as they were adding Delay in INIT
 		// The Delay is sometimes sorted out by restarting the computer.
-		//if (SDL_Init(SDL_INIT_TIMER | SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_HAPTIC) != 0)
+	if (SDL_Init(SDL_INIT_TIMER | SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_HAPTIC) != 0)
 	{
 		std::string error = SDL_GetError();
 		SP2D_FATAL("SDL Init Failed!\n{0}", error);
@@ -142,7 +143,7 @@ bool SP2D::Editor::Application::Initialize()
 	auto& transform = entity1.AddComponent<SP2D::Core::ECS::TransformComponent>(
 		SP2D::Core::ECS::TransformComponent{
 			.position = glm::vec2{10.f, 10.f},
-			.scale = glm::vec2{1.f, 1.f},
+			.scale = glm::vec2{5.f, 5.f},
 			.rotation = 0.f
 		}
 	);
@@ -151,43 +152,19 @@ bool SP2D::Editor::Application::Initialize()
 		SP2D::Core::ECS::SpriteComponent{
 			.width = 18.f,
 			.height = 18.f,
-			.color = SP2D::Rendering::Color{.r = 0, .g = 255, .b = 0, .a = 255},
+			.color = SP2D::Rendering::Color{.r = 255, .g = 255, .b = 255, .a = 255},
 			.start_x = 4,
-			.start_y = 2
+			.start_y = 2,
+			.layer = 0,
+			.texture_name="sample_packed_tilemap"
 		}
 	);
 
 	sprite.generate_uvs(texture.GetWidth(), texture.GetHeight());
 
-	std::vector<SP2D::Rendering::Vertex> vertices{};
-	SP2D::Rendering::Vertex vTL{}, vTR{}, vBL{}, vBR{};
-
-	vTL.position = glm::vec2{ transform.position.x, transform.position.y + sprite.height };
-	vTL.uvs = glm::vec2{ sprite.uvs.u, sprite.uvs.v + sprite.uvs.uv_height };
-
-	vTR.position = glm::vec2{ transform.position.x + sprite.width, transform.position.y + sprite.height };
-	vTR.uvs = glm::vec2{ sprite.uvs.u + sprite.uvs.uv_width, sprite.uvs.v + sprite.uvs.uv_height };
-
-	vBL.position = glm::vec2{ transform.position.x, transform.position.y };
-	vBL.uvs = glm::vec2{ sprite.uvs.u, sprite.uvs.v };
-
-	vBR.position = glm::vec2{ transform.position.x + sprite.width, transform.position.y };
-	vBR.uvs = glm::vec2{ sprite.uvs.u + sprite.uvs.uv_width, sprite.uvs.v };
-
-	vertices.push_back(vTL);
-	vertices.push_back(vBL);
-	vertices.push_back(vBR);
-	vertices.push_back(vTR);
-
 	// Test Component
 	auto& id = entity1.GetComponent<SP2D::Core::ECS::IdentificationComponent>();
 	SP2D_INFO("Name : {0}, Group : {1}, ID : {2}", id.name, id.group, id.entity_id);
-
-	GLuint indices[] =
-	{
-		0, 1, 2,
-		2, 3, 0
-	};
 
 	// Create the Lua State
 	auto lua = std::make_shared<sol::state>();
@@ -212,6 +189,7 @@ bool SP2D::Editor::Application::Initialize()
 		return false;
 	}
 
+	// Creating Scripting System
 	auto scriptSystem = std::make_shared<SP2D::Core::Systems::ScriptingSystem>(*m_pRegistry);
 	if (!scriptSystem)
 	{
@@ -231,9 +209,22 @@ bool SP2D::Editor::Application::Initialize()
 		return false;
 	}
 
+	// Creating Render System
+	auto renderSystem = std::make_shared<SP2D::Core::Systems::RenderSystem>(*m_pRegistry);
+	if (!renderSystem)
+	{
+		SP2D_ERROR("Failed to create Rendering System!");
+		return false;
+	}
+	if (!m_pRegistry->AddToContext<std::shared_ptr<SP2D::Core::Systems::RenderSystem>>(renderSystem))
+	{
+		SP2D_ERROR("Failed to add the RenderSystem to Registry Context!");
+		return false;
+	}
+
 	// Create Temp Camera
 	auto camera = std::make_shared<SP2D::Rendering::Camera2D>();
-	camera->SetScale(3.f);
+	//camera->SetScale(3.f);
 
 	if (!m_pRegistry->AddToContext(std::shared_ptr<SP2D::Core::Resources::AssetManager>(assetManager)))
 	{
@@ -250,71 +241,8 @@ bool SP2D::Editor::Application::Initialize()
 	if (!LoadShaders())
 	{
 		SP2D_ERROR("Failed to load the Shaders!");
+		return false;
 	}
-
-	// Generate VAO & VBO & IBO
-	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO);
-	glGenBuffers(1, &IBO);
-
-	// Bind VAO & VBO & IBO
-	glBindVertexArray(VAO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-
-	glBufferData(
-		GL_ARRAY_BUFFER,									// Target Buffer Type
-		vertices.size() * sizeof(SP2D::Rendering::Vertex),	// The size in Bytes of the Buffer Object's New Data Store
-		vertices.data(),									// Pointer to data that will be copied into Data Store
-		GL_STATIC_DRAW										// Expected usage pattern of the data store
-	);
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
-
-	glBufferData(
-		GL_ELEMENT_ARRAY_BUFFER,				// Target Buffer Type
-		6 * sizeof(GLuint),						// The size in Bytes of the Buffer Object's New Data Store
-		indices,								// Pointer to data that will be copied into Data Store
-		GL_STATIC_DRAW							// Expected usage pattern of the data store
-	);
-
-	glVertexAttribPointer(
-		0,													// Attrib 0 - The layout position in the vertex shader
-		2,													// Size - Number of components per vertex
-		GL_FLOAT,											// Type - data type of above component
-		GL_FALSE,											// Normalized - Specifies if fixed-point data values should be normalized
-		sizeof(SP2D::Rendering::Vertex),					// Stride - Specifies the byte offset b/w consecutive attribs
-		(void*)offsetof(SP2D::Rendering::Vertex, position)	// Pointer - Offset of the First Component
-	);
-
-	glEnableVertexArrayAttrib(VAO, 0);
-
-	// For UVs
-	glVertexAttribPointer(
-		1,
-		2,
-		GL_FLOAT,
-		GL_FALSE,
-		sizeof(SP2D::Rendering::Vertex),
-		(void*)offsetof(SP2D::Rendering::Vertex, uvs)
-	);
-
-	glEnableVertexArrayAttrib(VAO, 1);
-
-	// For Color
-	glVertexAttribPointer(
-		2,
-		4,
-		GL_UNSIGNED_BYTE,
-		GL_TRUE,
-		sizeof(SP2D::Rendering::Vertex),
-		(void*)offsetof(SP2D::Rendering::Vertex, color)
-	);
-
-	glEnableVertexArrayAttrib(VAO, 2);
-
-	//glBindBuffer(GL_ARRAY_BUFFER, 0);
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
 
 	return true;
 }
@@ -322,6 +250,12 @@ bool SP2D::Editor::Application::Initialize()
 bool SP2D::Editor::Application::LoadShaders()
 {
 	auto& assetManager = m_pRegistry->GetContext<std::shared_ptr<SP2D::Core::Resources::AssetManager>>();
+
+	if (!assetManager)
+	{
+		SP2D_ERROR("Failed to get the AssetManager from Registry Context!");
+		return false;
+	}
 
 	// Add and Create First Shader
 	if (!assetManager->AddShader("basicShader", "assets/shaders/basicShader.vert", "assets/shaders/basicShader.frag"))
@@ -378,15 +312,10 @@ void SP2D::Editor::Application::Update()
 
 void SP2D::Editor::Application::Render()
 {
-	auto& assetManager = m_pRegistry->GetContext<std::shared_ptr<SP2D::Core::Resources::AssetManager>>();
-	auto& camera = m_pRegistry->GetContext<std::shared_ptr<SP2D::Rendering::Camera2D>>();
-
-	auto& shader = assetManager->GetShader("basicShader");
-	auto projection = camera->GetCameraMatrix();
-
-	if (shader.ShaderProgramID() == 0)
+	auto& renderSystem = m_pRegistry->GetContext<std::shared_ptr<SP2D::Core::Systems::RenderSystem>>();
+	if (!renderSystem)
 	{
-		SP2D_ERROR("Shader program has not been creatred correctly!");
+		SP2D_ERROR("Failed to get the RenderSystem from Registry Context!");
 		return;
 	}
 
@@ -399,14 +328,6 @@ void SP2D::Editor::Application::Render()
 
 	glClearColor(0.f, 1.f, 1.f, 1.f);
 	glClear(GL_COLOR_BUFFER_BIT);
-	shader.Enable();
-	glBindVertexArray(VAO);
-
-	shader.SetUniformMat4("uProjection", projection);
-
-	glActiveTexture(GL_TEXTURE0);
-	const auto& texture = assetManager->GetTexture("sample_packed_tilemap");
-	glBindTexture(GL_TEXTURE_2D, texture.GetID());
 
 	auto& scriptSystem = m_pRegistry->GetContext<std::shared_ptr<SP2D::Core::Systems::ScriptingSystem>>();
 
@@ -417,14 +338,9 @@ void SP2D::Editor::Application::Render()
 	}
 
 	scriptSystem->Render();
-
-	// Draw Triangle - 3 | Draw Quad - 6
-	// glDrawArrays(GL_TRIANGLES, 0, 6); // Cannot use with IBO
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+	renderSystem->Update();
 
 	SDL_GL_SwapWindow(m_pWindow->GetWindow().get());
-
-	shader.Disable();
 }
 
 void SP2D::Editor::Application::Cleanup()
@@ -435,7 +351,6 @@ void SP2D::Editor::Application::Cleanup()
 
 SP2D::Editor::Application::Application()
 	: m_pWindow{ nullptr }, m_pRegistry{ nullptr }, m_Event{}, m_bIsRunning{ true }
-	, VAO{0}, VBO{0}, IBO{0} // TODO Remove Later
 {
 
 }
@@ -444,11 +359,6 @@ SP2D::Editor::Application& SP2D::Editor::Application::GetInstance()
 {
 	static SP2D::Editor::Application app{};
 	return app;
-}
-
-SP2D::Editor::Application::~Application()
-{
-
 }
 
 void SP2D::Editor::Application::Run()

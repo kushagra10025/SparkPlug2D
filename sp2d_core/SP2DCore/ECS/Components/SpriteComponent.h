@@ -13,7 +13,9 @@ namespace SP2D::Core::ECS
 		UVs uvs{ .u = 0.f, .v = 0.f, .uv_width = 0.f, .uv_height = 0.f };
 
 		SP2D::Rendering::Color color{ .r = 255, .g = 255, .b = 255, .a = 255 };
-		int start_x{ 0 }, start_y{ 0 };
+		int start_x{ 0 }, start_y{ 0 }, layer{ 0 };
+
+		std::string texture_name{ "" };
 
 		void generate_uvs(int textureWidth, int textureHeight)
 		{
