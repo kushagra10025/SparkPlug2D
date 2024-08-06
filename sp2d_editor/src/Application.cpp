@@ -308,6 +308,40 @@ void SP2D::Editor::Application::Update()
 	}
 
 	scriptSystem->Update();
+
+	// Quick System Creation for Entity Update test
+	auto view = m_pRegistry->GetRegistry().view<SP2D::Core::ECS::TransformComponent, SP2D::Core::ECS::SpriteComponent>();
+
+	static float rotation{ 0.f };
+	static float x_pos{ 10.f };
+	static bool bMoveRight{ true };
+
+	if (rotation >= 360.f)
+	{
+		rotation = 0.f;
+	}
+
+	if (bMoveRight && x_pos < 300.f)
+		x_pos += 3;
+	else if (bMoveRight && x_pos >= 300.f)
+		bMoveRight = false;
+
+	if (!bMoveRight && x_pos > 10.f)
+		x_pos -= 3;
+	else if (!bMoveRight && x_pos <= 10.f)
+		bMoveRight = true;
+
+	for (const auto& entity : view)
+	{
+		SP2D::Core::ECS::Entity ent{ *m_pRegistry, entity };
+		auto& transform = ent.GetComponent<SP2D::Core::ECS::TransformComponent>();
+
+		transform.rotation = rotation;
+		transform.position.x = x_pos;
+	}
+
+	rotation += bMoveRight ? 9 : -9;
+
 }
 
 void SP2D::Editor::Application::Render()
