@@ -18,6 +18,8 @@
 #include <SP2DCore/ECS/Components/TransformComponent.h>
 #include <SP2DCore/ECS/Components/IdentificationComponent.h>
 
+#include <SP2DCore/Resources/AssetManager.h>
+
 int main(int argc, char** argv)
 {
 	bool running = true;
@@ -113,13 +115,23 @@ int main(int argc, char** argv)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	// Temp Texture
-	auto texture = SP2D::Rendering::TextureLoader::Create(SP2D::Rendering::Texture::TextureType::PIXEL, "assets/textures/pixel_platformer/Tilemap/tilemap_packed.png");
-	if (!texture)
+	auto assetManager = std::make_shared<SP2D::Core::Resources::AssetManager>();
+	if (!assetManager)
 	{
-		SP2D_ERROR("Failed to Create Texture!");
+		SP2D_ERROR("Failed to create the Asset Manager!");
+		return -1;
 	}
-	SP2D_INFO("Loaded Texture : [Width = {0} ; Height = {1}]", texture->GetWidth(), texture->GetHeight());
+
+	if (!assetManager->AddTexture("sample_packed_tilemap", "assets/textures/pixel_platformer/Tilemap/tilemap_packed.png", true))
+	{
+		SP2D_ERROR("Failed to Add the Texture to Asset Manager!");
+		return -1;
+	}
+
+	// Temp Texture
+	auto texture = assetManager->GetTexture("sample_packed_tilemap");
+
+	SP2D_INFO("Loaded Texture : [Width = {0} ; Height = {1}]", texture.GetWidth(), texture.GetHeight());
 
 	// Temp Entity Stuff
 	auto pRegistry = std::make_unique<SP2D::Core::ECS::Registry>();
@@ -149,7 +161,7 @@ int main(int argc, char** argv)
 		}
 	);
 
-	sprite.generate_uvs(texture->GetWidth(), texture->GetHeight());
+	sprite.generate_uvs(texture.GetWidth(), texture.GetHeight());
 
 	std::vector<SP2D::Rendering::Vertex> vertices{};
 	SP2D::Rendering::Vertex vTL{}, vTR{}, vBL{}, vBR{};
@@ -300,7 +312,7 @@ int main(int argc, char** argv)
 		shader->SetUniformMat4("uProjection", projection);
 
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture->GetID());
+		glBindTexture(GL_TEXTURE_2D, texture.GetID());
 
 		// Draw Triangle - 3 | Draw Quad - 6
 		// glDrawArrays(GL_TRIANGLES, 0, 6); // Cannot use with IBO
