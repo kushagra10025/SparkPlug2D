@@ -24,6 +24,8 @@ add_subdirectory("external/SOIL2")
 add_subdirectory("external/glm")
 add_subdirectory("external/spdlog")
 add_subdirectory("external/entt")
+add_subdirectory("external/lua")
+add_subdirectory("external/sol2")
 
 # Internal Libraries
 add_subdirectory("sp2d_core")

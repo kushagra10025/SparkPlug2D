@@ -16,7 +16,7 @@
 #include <SP2DCore/ECS/Components/SpriteComponent.h>
 #include <SP2DCore/ECS/Components/TransformComponent.h>
 #include <SP2DCore/ECS/Components/IdentificationComponent.h>
-
+#include <SP2DCore/Systems/ScriptingSystem.h>
 #include <SP2DCore/Resources/AssetManager.h>
 
 bool SP2D::Editor::Application::Initialize()
@@ -189,6 +189,48 @@ bool SP2D::Editor::Application::Initialize()
 		2, 3, 0
 	};
 
+	// Create the Lua State
+	auto lua = std::make_shared<sol::state>();
+	if (!lua)
+	{
+		SP2D_ERROR("Failed to create Lua State!");
+		return false;
+	}
+
+	lua->open_libraries(
+		sol::lib::base, 
+		sol::lib::math, 
+		sol::lib::os, 
+		sol::lib::table, 
+		sol::lib::io, 
+		sol::lib::string
+	);
+
+	if (!m_pRegistry->AddToContext<std::shared_ptr<sol::state>>(lua))
+	{
+		SP2D_ERROR("Failed to add the sol::state to Registry Context!");
+		return false;
+	}
+
+	auto scriptSystem = std::make_shared<SP2D::Core::Systems::ScriptingSystem>(*m_pRegistry);
+	if (!scriptSystem)
+	{
+		SP2D_ERROR("Failed to create Scripting System!");
+		return false;
+	}
+
+	if (!scriptSystem->LoadMainScript(*lua))
+	{
+		SP2D_ERROR("Failed to load main-lua script!");
+		return false;
+	}
+
+	if (!m_pRegistry->AddToContext<std::shared_ptr<SP2D::Core::Systems::ScriptingSystem>>(scriptSystem))
+	{
+		SP2D_ERROR("Failed to add the ScriptSystem to Registry Context!");
+		return false;
+	}
+
 	// Create Temp Camera
 	auto camera = std::make_shared<SP2D::Rendering::Camera2D>();
 	camera->SetScale(3.f);
@@ -322,6 +364,16 @@ void SP2D::Editor::Application::Update()
 	}
 
 	camera->Update();
+
+	auto& scriptSystem = m_pRegistry->GetContext<std::shared_ptr<SP2D::Core::Systems::ScriptingSystem>>();
+
+	if (!scriptSystem)
+	{
+		SP2D_ERROR("Failed to get the ScriptSystem from Registry Context!");
+		return;
+	}
+
+	scriptSystem->Update();
 }
 
 void SP2D::Editor::Application::Render()
@@ -355,6 +407,16 @@ void SP2D::Editor::Application::Render()
 	glActiveTexture(GL_TEXTURE0);
 	const auto& texture = assetManager->GetTexture("sample_packed_tilemap");
 	glBindTexture(GL_TEXTURE_2D, texture.GetID());
+
+	auto& scriptSystem = m_pRegistry->GetContext<std::shared_ptr<SP2D::Core::Systems::ScriptingSystem>>();
+
+	if (!scriptSystem)
+	{
+		SP2D_ERROR("Failed to get the ScriptSystem from Registry Context!");
+		return;
+	}
+
+	scriptSystem->Render();
 
 	// Draw Triangle - 3 | Draw Quad - 6
 	// glDrawArrays(GL_TRIANGLES, 0, 6); // Cannot use with IBO

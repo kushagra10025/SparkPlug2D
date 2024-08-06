@@ -16,3 +16,14 @@ SP2D::Core::ECS::Entity::Entity(Registry& registry, const std::string& name /*= 
 			.entity_id = static_cast<int32_t>(m_Entity)
 		});
 }
+
+SP2D::Core::ECS::Entity::Entity(Registry& registry, const entt::entity& entity)
+	:m_Registry{ registry }, m_Entity{ entity }, m_sName{ "" }, m_sGroup{ "" }
+{
+	if (HasComponent<IdentificationComponent>())
+	{
+		auto id = GetComponent<IdentificationComponent>();
+		m_sName = id.name;
+		m_sGroup = id.group;
+	}
+}

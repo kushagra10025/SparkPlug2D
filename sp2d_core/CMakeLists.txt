@@ -19,6 +19,8 @@ add_library(sp2d::core ALIAS ${PROJECT_NAME})
 target_include_directories(${PROJECT_NAME}
 	PUBLIC "${CMAKE_SOURCE_DIR}/external/glm"
 	PUBLIC "${CMAKE_SOURCE_DIR}/external/entt/src"
+	PUBLIC "${CMAKE_SOURCE_DIR}/external/lua/include"
+	PUBLIC "${CMAKE_SOURCE_DIR}/external/sol2/include"
 	PUBLIC "${CMAKE_SOURCE_DIR}/sp2d_rendering/"
 	PUBLIC "${CMAKE_SOURCE_DIR}/sp2d_logging/"
 )
@@ -26,6 +28,7 @@ target_include_directories(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
 	PUBLIC "glm::glm"
 	PUBLIC "EnTT::EnTT"
+	PUBLIC "lua::lua"
 	PUBLIC "sp2d::rendering"
 	PUBLIC "sp2d::logging"
 )
