@@ -5,6 +5,12 @@
 #include "../ECS/Entity.h"
 #include <SP2DLogging/Log.h>
 
+// Macro to Register the Component to Lua Scripting
+#define SP2D_SCRIPTINGSYSTEM_REGISTER_METACOMPONENT(TComponent) do {	\
+	SP2D::Core::ECS::Registry::RegisterMetaComponent<TComponent>();		\
+	SP2D::Core::ECS::Entity::RegisterMetaComponent<TComponent>();		\
+} while (0)
+
 SP2D::Core::Systems::ScriptingSystem::ScriptingSystem(ECS::Registry& registry)
 	:m_Registry{ registry }, m_bMainLoaded{ false }
 {
@@ -13,7 +19,7 @@ SP2D::Core::Systems::ScriptingSystem::ScriptingSystem(ECS::Registry& registry)
 
 bool SP2D::Core::Systems::ScriptingSystem::LoadMainScript(sol::state& lua)
 {
-	try 
+	try
 	{
 		auto result = lua.safe_script_file("assets/scripts/main.lua");
 	}
@@ -69,7 +75,7 @@ void SP2D::Core::Systems::ScriptingSystem::Update()
 	for (const auto& entity : view)
 	{
 		ECS::Entity ent{ m_Registry, entity };
-		if(ent.GetName() != "main_script")
+		if (ent.GetName() != "main_script")
 			continue;
 
 		auto& script = ent.GetComponent<ECS::ScriptComponent>();
@@ -110,11 +116,17 @@ void SP2D::Core::Systems::ScriptingSystem::Render()
 
 void SP2D::Core::Systems::ScriptingSystem::RegisterLuaBindings(sol::state& lua, SP2D::Core::ECS::Registry& registry)
 {
+	SP2D::Core::ECS::Registry::CreateLuaRegistryBind(lua, registry);
 	SP2D::Core::ECS::Entity::CreateLuaEntityBind(lua, registry);
 	SP2D::Core::ECS::TransformComponent::CreateLuaTransformBind(lua);
 	SP2D::Core::ECS::SpriteComponent::CreateLuaSpriteBind(lua, registry);
 
-	SP2D::Core::ECS::Entity::RegisterMetaComponent<SP2D::Core::ECS::TransformComponent>();
-	SP2D::Core::ECS::Entity::RegisterMetaComponent<SP2D::Core::ECS::SpriteComponent>();
+	SP2D_SCRIPTINGSYSTEM_REGISTER_METACOMPONENT(SP2D::Core::ECS::TransformComponent);
+	SP2D_SCRIPTINGSYSTEM_REGISTER_METACOMPONENT(SP2D::Core::ECS::SpriteComponent);
+
+	//SP2D::Core::ECS::Registry::RegisterMetaComponent<SP2D::Core::ECS::TransformComponent>();
+	//SP2D::Core::ECS::Registry::RegisterMetaComponent<SP2D::Core::ECS::SpriteComponent>();
+	//SP2D::Core::ECS::Entity::RegisterMetaComponent<SP2D::Core::ECS::TransformComponent>();
+	//SP2D::Core::ECS::Entity::RegisterMetaComponent<SP2D::Core::ECS::SpriteComponent>();
 }
 

@@ -10,6 +10,49 @@ local sprite = gEntity:add_component(
 	Sprite("sample_packed_tilemap", 18.0, 18.0, 4, 2, 0)
 )
 
+-- Test for entities and view
+gEntity2 = Entity("TestEntity2", "DefaultGroup")
+gEntity2:add_component(Transform(200, 100, 10, 10, 0))
+
+local view = Registry.get_entities(Transform)
+
+print("Before Excluding Transform Comp")
+
+view:for_each(
+	function(entity)
+		print(entity:name())
+	end
+)
+print("After Excluding Transform Comp")
+
+view:exclude(Transform)
+view:for_each(
+	function(entity)
+		print(entity:name())
+	end
+)
+
+-- Test For has_component, get_component
+-- remove_component is giving assert
+
+local hasSprite = gEntity:has_component(Sprite)
+
+if has_component == false then
+	print("gEntity has Sprite: false")
+else
+	print("gEntity has Sprite: true")
+	--gEntity:remove_component(Sprite)
+end
+
+local gotSprite = gEntity:get_component(Sprite)
+
+if gotSprite == nil then
+	print("gEntity got Sprite Failed")
+else
+	print("gEntity got Sprite Success")
+	print("Sprite texture_name : " ..gotSprite.texture_name)
+end
+
 sprite:generate_uvs()
 
 local rotation = 0.0

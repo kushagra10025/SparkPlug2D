@@ -40,7 +40,7 @@ void SP2D::Core::ECS::Entity::CreateLuaEntityBind(sol::state& lua, Registry& reg
 				return Entity{ registry, name, group };
 			}
 		),
-		"add_component", [&](Entity& entity, const sol::table& comp, sol::this_state s) -> sol::object {
+		"add_component", [](Entity& entity, const sol::table& comp, sol::this_state s) -> sol::object {
 			if (!comp.valid())
 				return sol::lua_nil_t{};
 
@@ -51,6 +51,46 @@ void SP2D::Core::ECS::Entity::CreateLuaEntityBind(sol::state& lua, Registry& reg
 			);
 
 			return component ? component.cast<sol::reference>() : sol::lua_nil_t{};
-		}
+		},
+		"has_component", [](Entity& entity, const sol::table& comp) -> bool {
+			if (!comp.valid())
+				return false;
+
+			const auto component = SP2D::Core::ECS::Utils::InvokeMetaFunction(
+				SP2D::Core::ECS::Utils::GetIdType(comp),
+				"has_component"_hs,
+				entity
+			);
+
+			return component ? component.cast<bool>() : false;
+		},
+		"get_component", [](Entity& entity, const sol::table& comp, sol::this_state s) -> sol::reference {
+			if (!comp.valid())
+				return sol::lua_nil_t{};
+
+			const auto component = SP2D::Core::ECS::Utils::InvokeMetaFunction(
+				SP2D::Core::ECS::Utils::GetIdType(comp),
+				"get_component"_hs,
+				entity, s
+			);
+
+			return component ? component.cast<sol::reference>() : sol::lua_nil_t{};
+		},
+		"remove_component", [](Entity& entity, const sol::table& comp) -> sol::reference {
+			if (!comp.valid())
+				return sol::lua_nil_t{};
+
+			const auto component = SP2D::Core::ECS::Utils::InvokeMetaFunction(
+				SP2D::Core::ECS::Utils::GetIdType(comp),
+				"remove_component"_hs,
+				entity
+			);
+
+			return component ? component.cast<sol::reference>() : sol::lua_nil_t{};
+		},
+		"name", &Entity::GetName,
+		"group", &Entity::GetGroup,
+		"kill", &Entity::Kill,
+		"id", [](Entity& entity) { return static_cast<int32_t>(entity.GetEntity()); }
 	);
 }
