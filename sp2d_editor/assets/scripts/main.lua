@@ -3,7 +3,8 @@
 gEntity = Entity("TestEntity", "DefaultGroup")
 
 local transform = gEntity:add_component(
-	Transform(100, 100, 10, 10, 0)
+	-- Transform(100, 100, 10, 10, 0)
+	Transform(vec2(100, 100), vec2(10, 10), 0)
 )
 
 local sprite = gEntity:add_component(
@@ -53,6 +54,23 @@ else
 	print("Sprite texture_name : " ..gotSprite.texture_name)
 end
 
+-- Test GLM Function binds
+
+vecA = vec2(10, 10)
+vecB = vec2(15, 15)
+
+vecA3 = vec3(1, 2, 3)
+vecB3 = vec3(4, 5, 6)
+
+vecDist = vector_distance(vecA, vecB)
+vecANormalized = vector_normalize(vecA)
+vecCross = vector_cross(vecA3, vecB3)
+
+print("vecDist = " .. tostring(vecDist))
+print("vecANormalzied = x : " .. tostring(vecANormalized.x) ..  " y : " .. tostring(vecANormalized.y))
+print("vecCross = x : " .. tostring(vecCross.x) ..  " y : " .. tostring(vecCross.y) .. " z : " .. tostring(vecCross.z))
+
+
 sprite:generate_uvs()
 
 local rotation = 0.0
@@ -83,10 +101,9 @@ main = {
 				move_right = true 
 			end 
 
-			local pos_x, pos_y = transform:position()
-			pos_x = x_pos
+			transform.position.x = x_pos
 			transform.rotation = rotation 
-			transform:set_pos(pos_x, pos_y)
+			--transform:set_pos(pos_x, pos_y)
 
 			if move_right then 
 				rotation = rotation + 9
@@ -108,7 +125,8 @@ main = {
 				value = 0
 			end 
 
-			transform:set_scale(scale, scale)
+			transform.scale = vec2(scale, scale)
+			--transform:set_scale(scale, scale)
 
 		end
 	},

@@ -45,7 +45,7 @@ namespace SP2D::Core::ECS
 	//////////
 
 	template <typename TComponent>
-	auto SP2D::Core::ECS::add_component(Entity& entity, const sol::table& comp, sol::this_state s)
+	auto add_component(Entity& entity, const sol::table& comp, sol::this_state s)
 	{
 		auto& component = entity.AddComponent<TComponent>(
 			comp.valid() ? comp.as<TComponent>() : TComponent{}
@@ -55,20 +55,20 @@ namespace SP2D::Core::ECS
 	}
 
 	template <typename TComponent>
-	bool SP2D::Core::ECS::has_component(Entity& entity)
+	bool has_component(Entity& entity)
 	{
 		return entity.HasComponent<TComponent>();
 	}
 
 	template <typename TComponent>
-	auto SP2D::Core::ECS::get_component(Entity& entity, sol::this_state s)
+	auto get_component(Entity& entity, sol::this_state s)
 	{
 		auto& comp = entity.GetComponent<TComponent>();
 		return sol::make_reference(s, std::ref(comp));
 	}
 
 	template <typename TComponent>
-	auto SP2D::Core::ECS::remove_component(Entity& entity)
+	auto remove_component(Entity& entity)
 	{
 		return entity.RemoveComponent<TComponent>();
 	}
