@@ -17,6 +17,7 @@ add_library(${PROJECT_NAME} STATIC ${SP2DCORE_SOURCES})
 add_library(sp2d::core ALIAS ${PROJECT_NAME})
 
 target_include_directories(${PROJECT_NAME}
+	PUBLIC "${CMAKE_SOURCE_DIR}/external/SDL/include"
 	PUBLIC "${CMAKE_SOURCE_DIR}/external/glm"
 	PUBLIC "${CMAKE_SOURCE_DIR}/external/entt/src"
 	PUBLIC "${CMAKE_SOURCE_DIR}/external/lua/include"
@@ -26,6 +27,7 @@ target_include_directories(${PROJECT_NAME}
 )
 
 target_link_libraries(${PROJECT_NAME}
+	PUBLIC "SDL2::SDL2-static"
 	PUBLIC "glm::glm"
 	PUBLIC "EnTT::EnTT"
 	PUBLIC "lua::lua"

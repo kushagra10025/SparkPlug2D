@@ -18,6 +18,7 @@
 #include <SP2DCore/ECS/Components/IdentificationComponent.h>
 #include <SP2DCore/Systems/ScriptingSystem.h>
 #include <SP2DCore/Systems/RenderSystem.h>
+#include <SP2DCore/Systems/AnimationSystem.h>
 #include <SP2DCore/Resources/AssetManager.h>
 
 bool SP2D::Editor::Application::Initialize()
@@ -125,6 +126,12 @@ bool SP2D::Editor::Application::Initialize()
 		return false;
 	}
 
+	if (!assetManager->AddTexture("sample_packed_characters", "assets/textures/pixel_platformer/Tilemap/tilemap-characters_packed.png", true))
+	{
+		SP2D_ERROR("Failed to Add the Texture to Asset Manager!");
+		return false;
+	}
+
 	// Create ECS Registry
 	m_pRegistry = std::make_unique<SP2D::Core::ECS::Registry>();
 	if (!m_pRegistry)
@@ -180,6 +187,19 @@ bool SP2D::Editor::Application::Initialize()
 	if (!m_pRegistry->AddToContext<std::shared_ptr<SP2D::Core::Systems::RenderSystem>>(renderSystem))
 	{
 		SP2D_ERROR("Failed to add the RenderSystem to Registry Context!");
+		return false;
+	}
+
+	// Creating Animation System
+	auto animationSystem = std::make_shared<SP2D::Core::Systems::AnimationSystem>(*m_pRegistry);
+	if (!animationSystem)
+	{
+		SP2D_ERROR("Failed to create Animation System!");
+		return false;
+	}
+	if (!m_pRegistry->AddToContext<std::shared_ptr<SP2D::Core::Systems::AnimationSystem>>(animationSystem))
+	{
+		SP2D_ERROR("Failed to add the AnimationSystem to Registry Context!");
 		return false;
 	}
 
@@ -278,6 +298,16 @@ void SP2D::Editor::Application::Update()
 	}
 
 	scriptSystem->Update();
+
+	auto& animationSystem = m_pRegistry->GetContext<std::shared_ptr<SP2D::Core::Systems::AnimationSystem>>();
+
+	if (!animationSystem)
+	{
+		SP2D_ERROR("Failed to get the AnimationSystem from Registry Context!");
+		return;
+	}
+
+	animationSystem->Update();
 }
 
 void SP2D::Editor::Application::Render()

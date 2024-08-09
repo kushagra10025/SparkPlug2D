@@ -14,6 +14,9 @@ local sprite = gEntity:add_component(
 -- Test for entities and view
 gEntity2 = Entity("TestEntity2", "DefaultGroup")
 gEntity2:add_component(Transform(200, 100, 10, 10, 0))
+local sprite2 = gEntity2:add_component(Sprite("sample_packed_characters", 24.0, 24.0, 6, 2, 0))
+sprite2:generate_uvs()
+local anim2 = gEntity2:add_component(Animation(3, 2, 0, false))
 
 local view = Registry.get_entities(Transform)
 
