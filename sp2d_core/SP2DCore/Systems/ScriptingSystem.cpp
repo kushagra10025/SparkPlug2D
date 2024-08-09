@@ -5,6 +5,7 @@
 #include "../ECS/Components/AnimationComponent.h"
 #include "../ECS/Entity.h"
 #include "../Scripting/GlmLuaBindings.h"
+#include "../Scripting/InputManager.h"
 #include <SP2DLogging/Log.h>
 
 // Macro to Register the Component to Lua Scripting
@@ -119,6 +120,8 @@ void SP2D::Core::Systems::ScriptingSystem::Render()
 void SP2D::Core::Systems::ScriptingSystem::RegisterLuaBindings(sol::state& lua, SP2D::Core::ECS::Registry& registry)
 {
 	SP2D::Core::Scripting::GLMBindings::CreateLuaGLMBindings(lua);
+	SP2D::Core::Scripting::InputManager::CreateLuaInputBindings(lua);
+
 	SP2D::Core::ECS::Registry::CreateLuaRegistryBind(lua, registry);
 	SP2D::Core::ECS::Entity::CreateLuaEntityBind(lua, registry);
 	SP2D::Core::ECS::TransformComponent::CreateLuaTransformBind(lua);

@@ -20,6 +20,8 @@
 #include <SP2DCore/Systems/RenderSystem.h>
 #include <SP2DCore/Systems/AnimationSystem.h>
 #include <SP2DCore/Resources/AssetManager.h>
+#include <SP2DCore/Scripting/InputManager.h>
+#include <SP2DWindowing/Inputs/Keyboard.h>
 
 bool SP2D::Editor::Application::Initialize()
 {
@@ -259,18 +261,31 @@ bool SP2D::Editor::Application::LoadShaders()
 
 void SP2D::Editor::Application::ProcessEvents()
 {
+	auto& inputManager = SP2D::Core::Scripting::InputManager::GetInstance();
+	auto& keyboard = inputManager.GetKeyboard();
+
 	// Process Events
 	while (SDL_PollEvent(&m_Event))
 	{
 		switch (m_Event.type)
 		{
 		case SDL_QUIT:
+		{
 			m_bIsRunning = false;
 			break;
+		}
 		case SDL_KEYDOWN:
-			if (m_Event.key.keysym.sym = SDLK_ESCAPE)
+		{
+			if (m_Event.key.keysym.sym == SDLK_ESCAPE)
 				m_bIsRunning = false;
+			keyboard.OnKeyPressed(m_Event.key.keysym.sym);
 			break;
+		}
+		case SDL_KEYUP:
+		{
+			keyboard.OnKeyReleased(m_Event.key.keysym.sym);
+			break;
+		}
 		default:
 			break;
 		}
@@ -308,6 +323,11 @@ void SP2D::Editor::Application::Update()
 	}
 
 	animationSystem->Update();
+
+	// Update inputs
+	auto& inputManager = SP2D::Core::Scripting::InputManager::GetInstance();
+	auto& keyboard = inputManager.GetKeyboard();
+	keyboard.Update();
 }
 
 void SP2D::Editor::Application::Render()
