@@ -2,7 +2,7 @@
 
 #include <SDL.h>
 
-constexpr int KEY_UNKNOWN = -1;
+constexpr int SP2D_KEY_UNKNOWN = -1;
 
 constexpr int SP2D_KEY_BACKSPACE = SDLK_BACKSPACE;
 constexpr int SP2D_KEY_TAB = SDLK_TAB;

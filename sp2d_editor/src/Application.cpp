@@ -21,7 +21,9 @@
 #include <SP2DCore/Systems/AnimationSystem.h>
 #include <SP2DCore/Resources/AssetManager.h>
 #include <SP2DCore/Scripting/InputManager.h>
+
 #include <SP2DWindowing/Inputs/Keyboard.h>
+#include <SP2DWindowing/Inputs/Mouse.h>
 
 bool SP2D::Editor::Application::Initialize()
 {
@@ -263,6 +265,7 @@ void SP2D::Editor::Application::ProcessEvents()
 {
 	auto& inputManager = SP2D::Core::Scripting::InputManager::GetInstance();
 	auto& keyboard = inputManager.GetKeyboard();
+	auto& mouse = inputManager.GetMouse();
 
 	// Process Events
 	while (SDL_PollEvent(&m_Event))
@@ -284,6 +287,27 @@ void SP2D::Editor::Application::ProcessEvents()
 		case SDL_KEYUP:
 		{
 			keyboard.OnKeyReleased(m_Event.key.keysym.sym);
+			break;
+		}
+		case SDL_MOUSEBUTTONDOWN:
+		{
+			mouse.OnButtonPressed(m_Event.button.button);
+			break;
+		}
+		case SDL_MOUSEBUTTONUP:
+		{
+			mouse.OnButtonReleased(m_Event.button.button);
+			break;
+		}
+		case SDL_MOUSEWHEEL:
+		{
+			mouse.SetMouseWheelX(m_Event.wheel.x);
+			mouse.SetMouseWheelY(m_Event.wheel.y);
+			break;
+		}
+		case SDL_MOUSEMOTION:
+		{
+			mouse.SetMouseMoving(true);
 			break;
 		}
 		default:
@@ -327,7 +351,10 @@ void SP2D::Editor::Application::Update()
 	// Update inputs
 	auto& inputManager = SP2D::Core::Scripting::InputManager::GetInstance();
 	auto& keyboard = inputManager.GetKeyboard();
+	auto& mouse = inputManager.GetMouse();
+
 	keyboard.Update();
+	mouse.Update();
 }
 
 void SP2D::Editor::Application::Render()

@@ -1,16 +1,15 @@
 #include "InputManager.h"
 
 SP2D::Core::Scripting::InputManager::InputManager()
-	: m_pKeyboard{ std::make_unique<SP2D::Windowing::Inputs::Keyboard>() }
+	: m_pKeyboard{ std::make_unique<SP2D::Windowing::Inputs::Keyboard>() },
+	m_pMouse{std::make_unique<SP2D::Windowing::Inputs::Mouse>()}
 {
 
 }
 
 void SP2D::Core::Scripting::InputManager::RegisterLuaKeyNames(sol::state& lua)
 {
-	// ==================================================================
 	// Register Typewriter Keys
-	// ==================================================================
 	lua.set("KEY_A", SP2D_KEY_A);
 	lua.set("KEY_B", SP2D_KEY_B);
 	lua.set("KEY_C", SP2D_KEY_C);
@@ -60,9 +59,7 @@ void SP2D::Core::Scripting::InputManager::RegisterLuaKeyNames(sol::state& lua)
 	lua.set("KEY_LSHIFT", SP2D_KEY_LSHIFT);
 	lua.set("KEY_RSHIFT", SP2D_KEY_RSHIFT);
 
-	// ==================================================================
 	//  Register Function Keys
-	// ==================================================================
 	lua.set("KEY_F1", SP2D_KEY_F1);
 	lua.set("KEY_F2", SP2D_KEY_F2);
 	lua.set("KEY_F3", SP2D_KEY_F3);
@@ -76,17 +73,13 @@ void SP2D::Core::Scripting::InputManager::RegisterLuaKeyNames(sol::state& lua)
 	lua.set("KEY_F11", SP2D_KEY_F11);
 	lua.set("KEY_F12", SP2D_KEY_F12);
 
-	// ==================================================================
 	// Register Cursor Control Keys
-	// ==================================================================
 	lua.set("KEY_UP", SP2D_KEY_UP);
 	lua.set("KEY_RIGHT", SP2D_KEY_RIGHT);
 	lua.set("KEY_DOWN", SP2D_KEY_DOWN);
 	lua.set("KEY_LEFT", SP2D_KEY_LEFT);
 
-	// ==================================================================
 	// Register Numeric Keypad Keys
-	// ==================================================================
 	lua.set("KP_KEY_0", SP2D_KEY_KP0);
 	lua.set("KP_KEY_1", SP2D_KEY_KP1);
 	lua.set("KP_KEY_2", SP2D_KEY_KP2);
@@ -100,6 +93,14 @@ void SP2D::Core::Scripting::InputManager::RegisterLuaKeyNames(sol::state& lua)
 	lua.set("KP_KEY_ENTER", SP2D_KEY_KP_ENTER);
 }
 
+void SP2D::Core::Scripting::InputManager::RegisterLuaMouseButtonNames(sol::state& lua)
+{
+	// Register Mouse Buttons
+	lua.set("LEFT_MOUSE_BTN", SP2D_MOUSE_LEFT);
+	lua.set("RIGHT_MOUSE_BTN", SP2D_MOUSE_RIGHT);
+	lua.set("MIDDLE_MOUSE_BTN", SP2D_MOUSE_MIDDLE);
+}
+
 SP2D::Core::Scripting::InputManager& SP2D::Core::Scripting::InputManager::GetInstance()
 {
 	static InputManager instance{};
@@ -109,6 +110,7 @@ SP2D::Core::Scripting::InputManager& SP2D::Core::Scripting::InputManager::GetIns
 void SP2D::Core::Scripting::InputManager::CreateLuaInputBindings(sol::state& lua)
 {
 	RegisterLuaKeyNames(lua);
+	RegisterLuaMouseButtonNames(lua);
 
 	auto& inputManager = GetInstance();
 	auto& keyboard = inputManager.GetKeyboard();
@@ -121,4 +123,16 @@ void SP2D::Core::Scripting::InputManager::CreateLuaInputBindings(sol::state& lua
 		"pressed", [&](int key) { return keyboard.IsKeyPressed(key); }
 	);
 
+	auto& mouse = inputManager.GetMouse();
+	lua.new_usertype<SP2D::Windowing::Inputs::Mouse>(
+		"Mouse",
+		sol::no_constructor,
+		"just_pressed", [&](int key) { return mouse.IsButtonJustPressed(key); },
+		"just_released", [&](int key) { return mouse.IsButtonJustReleased(key); },
+		"pressed", [&](int key) { return mouse.IsButtonPressed(key); },
+		"moving", [&]() { return mouse.IsMouseMoving(); },
+		"screen_position", [&]() { return mouse.GetMouseScreenPosition(); },
+		"wheel_x", [&]() { return mouse.GetMouseWheelX(); },
+		"wheel_y", [&]() { return mouse.GetMouseWheelY(); }
+	);
 }

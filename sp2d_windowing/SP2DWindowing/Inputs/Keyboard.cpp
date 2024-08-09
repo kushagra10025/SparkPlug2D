@@ -47,7 +47,7 @@ void SP2D::Windowing::Inputs::Keyboard::Update()
 
 void SP2D::Windowing::Inputs::Keyboard::OnKeyPressed(int key)
 {
-	if (key == KEY_UNKNOWN)
+	if (key == SP2D_KEY_UNKNOWN)
 	{
 		SP2D_CORE_ERROR("Key [{0}] is Unknown!", key);
 		return;
@@ -64,7 +64,7 @@ void SP2D::Windowing::Inputs::Keyboard::OnKeyPressed(int key)
 
 void SP2D::Windowing::Inputs::Keyboard::OnKeyReleased(int key)
 {
-	if (key == KEY_UNKNOWN)
+	if (key == SP2D_KEY_UNKNOWN)
 	{
 		SP2D_CORE_ERROR("Key [{0}] is Unknown!", key);
 		return;
@@ -81,7 +81,7 @@ void SP2D::Windowing::Inputs::Keyboard::OnKeyReleased(int key)
 
 const bool SP2D::Windowing::Inputs::Keyboard::IsKeyPressed(int key) const
 {
-	if (key == KEY_UNKNOWN)
+	if (key == SP2D_KEY_UNKNOWN)
 	{
 		SP2D_CORE_ERROR("Key [{0}] is Unknown!", key);
 		return false;
@@ -98,7 +98,7 @@ const bool SP2D::Windowing::Inputs::Keyboard::IsKeyPressed(int key) const
 
 const bool SP2D::Windowing::Inputs::Keyboard::IsKeyJustPressed(int key) const
 {
-	if (key == KEY_UNKNOWN)
+	if (key == SP2D_KEY_UNKNOWN)
 	{
 		SP2D_CORE_ERROR("Key [{0}] is Unknown!", key);
 		return false;
@@ -115,7 +115,7 @@ const bool SP2D::Windowing::Inputs::Keyboard::IsKeyJustPressed(int key) const
 
 const bool SP2D::Windowing::Inputs::Keyboard::IsKeyJustReleased(int key) const
 {
-	if (key == KEY_UNKNOWN)
+	if (key == SP2D_KEY_UNKNOWN)
 	{
 		SP2D_CORE_ERROR("Key [{0}] is Unknown!", key);
 		return false;

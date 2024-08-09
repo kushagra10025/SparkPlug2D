@@ -142,6 +142,20 @@ main = {
 				print("Key D was just pressed")
 			end
 
+			-- Test Mouse Input
+			if Mouse.just_pressed(LEFT_MOUSE_BTN) then
+				print("Mouse LEFT Button Pressed")
+			elseif Mouse.just_pressed(MIDDLE_MOUSE_BTN) then
+				print("Mouse MIDDLE Button Pressed") 
+			elseif Mouse.just_pressed(RIGHT_MOUSE_BTN) then
+				print("Mouse RIGHT Button Pressed") 
+			end
+
+			local mouse_x, mouse_y = Mouse.screen_position()
+			-- print("Mouse pos[" ..mouse_x ..", " ..mouse_y .."]")
+			local wheel_y = Mouse.wheel_y()
+			-- print("Wheel Y: " ..wheel_y)
+
 		end
 	},
 	[2] = {
